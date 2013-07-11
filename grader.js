@@ -27,7 +27,6 @@ var cheerio = require('cheerio');
 var rest = require('restler');
 var HTMLFILE_DEFAULT = "index.html";
 var CHECKSFILE_DEFAULT = "checks.json";
-var HTMLURL_DEFAULT = "http://pacific-atoll-5168.herokuapp.com/";
 
 var assertFileExists = function(infile) {
     var instr = infile.toString();
@@ -80,7 +79,15 @@ if(require.main == module) {
         .option('-f, --file <html_file>', 'Path to index.html', clone(assertFileExists), HTMLFILE_DEFAULT)
 	.option('-u, --url <html_url>', 'Url to index.html')
         .parse(process.argv);
-    var checkJson = checkHtmlFile(program.file, program.checks);
+    
+    var file;
+    if(program.url){
+	rest.get(program.url).on('complete', file);
+    }else{
+	file = program.file;
+    }
+
+    var checkJson = checkHtmlFile(file, program.checks);
 //    var checkJson = checkHtmlUrl(clone(rest.get(program.url)), program.checks); 
     var outJson = JSON.stringify(checkJson, null, 4);
     console.log(outJson);
