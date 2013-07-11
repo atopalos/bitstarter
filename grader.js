@@ -56,21 +56,16 @@ var checkHtmlFile = function(htmlfile, checksfile) {
     return out;
 };
 
-//var checkHtmlUrl = function(htmlUrl, checksfile) {
-//    $ = htmlUrl;
-//    var checks = loadChecks(checksfile).sort();
-//    var out = {};
-//    for(var ii in checks) {
-//	var present = $(checks[ii]).length > 0;
-//	out[checks[ii]] = present;
-//    }
-//    return out;
-//};
-
 var clone = function(fn) {
     // Workaround for commander.js issue.
     // http://stackoverflow.com/a/6772648
     return fn.bind({});
+};
+
+var doStuffSync = function(file, checks){
+    var checkJson = checkHtmlFile(file, checks);
+    var outJson = JSON.stringify(checkJson, null, 4);
+    console.log(outJson);
 };
 
 if(require.main == module) {
@@ -80,17 +75,15 @@ if(require.main == module) {
 	.option('-u, --url <html_url>', 'Url to index.html')
         .parse(process.argv);
     
-    var file;
+    var file = "file.html";
     if(program.url){
-	rest.get(program.url).on('complete', file);
+	rest.get(program.url).on('complete', function(result){
+	    fs.writeFileSync(file, result);
+	    doStuffSync(file, program.checks);
+	});
     }else{
-	file = program.file;
+	doStuffSync(program.file, program.checks);
     }
-
-    var checkJson = checkHtmlFile(file, program.checks);
-//    var checkJson = checkHtmlUrl(clone(rest.get(program.url)), program.checks); 
-    var outJson = JSON.stringify(checkJson, null, 4);
-    console.log(outJson);
 } else {
     exports.checkHtmlFile = checkHtmlFile;
 }
